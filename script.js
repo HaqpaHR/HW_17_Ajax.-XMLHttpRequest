@@ -1,0 +1,91 @@
+const wrapper = document.createElement("div");
+wrapper.className = "wrapper";
+let XMLHttpResponse;
+
+function getData(url, onSuccess,onError, onStart, onEnd, onLast){
+    const xhr = new XMLHttpRequest();
+
+    if(XMLHttpResponse){
+        xhr.open("GET", XMLHttpResponse.info.next);
+    }else{
+        xhr.open("GET", url)
+    };
+
+    xhr.responseType = "json";
+
+    xhr.onload = function() {
+        if(xhr.status === 200){
+            onSuccess(xhr.response);
+            XMLHttpResponse  = xhr.response;
+        }else{
+            onError(xhr.response)
+        }
+        onEnd()
+    };
+
+    xhr.onerror = function () {
+        onError("Error sending request or Last Page");
+        onLast();
+    }
+
+    xhr.onabort = function(){
+        console.log("Abort");
+        onEnd();
+    };
+
+    onStart();
+
+    xhr.send();
+};
+
+function createListOfNames(characters){
+
+    const list = document.createElement("ul");
+
+    for(let names of characters){
+        const listItem = document.createElement("li");
+        listItem.innerText = names.name;
+
+        list.append(listItem)
+    }
+
+    return list
+};
+
+
+function createButton(title){
+    const button = document.createElement("button");
+    button.innerText = title;
+
+    button.addEventListener("click", (event) => {
+        function onSuccess(data){
+            const list = createListOfNames(data.results);
+            const wrapper = document.querySelector(".wrapper");
+            wrapper.append(list)
+        };
+
+        function onStart(){
+            event.target.innerText = "Getting data...";
+            event.target.disabled = true;
+        };
+
+        function onError(err) {
+            console.error(err);
+        }
+
+        function onEnd(){
+            event.target.innerText = "GET DATA";
+            event.target.disabled = false;
+        };
+        function onLast(){
+            event.target.innerText = "LAST PAGE!";
+            event.target.disabled = true;
+        };
+
+        getData("https://rickandmortyapi.com/api/character/?page=1", onSuccess, onError, onStart, onEnd, onLast);
+    })
+    return button;
+};
+
+document.body.prepend(createButton("GET DATA"));
+document.body.appendChild(wrapper)
