@@ -1,32 +1,30 @@
 const wrapper = document.createElement("div");
 wrapper.className = "wrapper";
-let XMLHttpResponse;
+const url = "https://rickandmortyapi.com/api/character/?page=";
+let page = 1;
 
 function getData(url, onSuccess,onError, onStart, onEnd, onLast){
     const xhr = new XMLHttpRequest();
-
-    if(XMLHttpResponse){
-        xhr.open("GET", XMLHttpResponse.info.next);
-    }else{
-        xhr.open("GET", url)
-    };
-
+    
+    xhr.open("GET", url)
     xhr.responseType = "json";
 
     xhr.onload = function() {
         if(xhr.status === 200){
             onSuccess(xhr.response);
-            XMLHttpResponse  = xhr.response;
+            if(xhr.response.info.next === null){
+                return onLast()
+            }
         }else{
-            onError(xhr.response)
+            onError(xhr.response);
         }
         onEnd()
     };
-
+    
     xhr.onerror = function () {
         onError("Error sending request or Last Page");
-        onLast();
-    }
+        
+    };
 
     xhr.onabort = function(){
         console.log("Abort");
@@ -51,7 +49,6 @@ function createListOfNames(characters){
 
     return list
 };
-
 
 function createButton(title){
     const button = document.createElement("button");
@@ -78,11 +75,12 @@ function createButton(title){
             event.target.disabled = false;
         };
         function onLast(){
+            
             event.target.innerText = "LAST PAGE!";
             event.target.disabled = true;
         };
 
-        getData("https://rickandmortyapi.com/api/character/?page=1", onSuccess, onError, onStart, onEnd, onLast);
+        getData(url + page++, onSuccess, onError, onStart, onEnd, onLast);
     })
     return button;
 };
